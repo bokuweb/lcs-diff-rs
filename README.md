@@ -9,8 +9,7 @@ Compute differences between two slices using LCS algorithm.
 TODO:
 ```
 
-
-
+## LICENSE
 
 The MIT License (MIT)
 
