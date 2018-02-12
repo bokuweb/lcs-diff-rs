@@ -18,15 +18,15 @@ fn create_table<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<Vec<u32>> {
     let new_len = new.len();
     let old_len = old.len();
     let mut table = vec![vec![0; old_len + 1]; new_len + 1];
-    for (n, _) in new.iter().enumerate() {
-        let n = new_len - n - 1;
-        table[n][old_len] = 0;
-        for (o, _) in old.iter().enumerate() {
-            let o = old_len - o - 1;
-            if new[n] == old[o] {
-                table[n][o] = table[n + 1][o + 1] + 1;
+    for (i, _) in new.iter().enumerate() {
+        let i = new_len - i - 1;
+        table[i][old_len] = 0;
+        for (j, _) in old.iter().enumerate() {
+            let j = old_len - j - 1;
+            table[i][j] = if new[i] == old[j] {
+                table[i + 1][j + 1] + 1
             } else {
-                table[n][o] = cmp::max(table[n + 1][o], table[n][o + 1]);
+                cmp::max(table[i + 1][j], table[i][j + 1])
             }
         }
     }
@@ -92,43 +92,47 @@ pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
             if n >= new_len || o >= old_len {
                 break;
             }
-            if new[n + prefix_size] == old[o + prefix_size] {
+            let new_index = n + prefix_size;
+            let old_index = o + prefix_size;
+            if new[new_index] == old[old_index] {
                 result.push(DiffResult::Common(DiffElement {
-                                                   old_index: Some(o + prefix_size),
-                                                   new_index: Some(n + prefix_size),
-                                                   data: new[n + prefix_size].clone(),
+                                                   old_index: Some(old_index),
+                                                   new_index: Some(new_index),
+                                                   data: new[new_index].clone(),
                                                }));
                 n += 1;
                 o += 1;
             } else if table[n + 1][o] >= table[n][o + 1] {
                 result.push(DiffResult::Added(DiffElement {
                                                   old_index: None,
-                                                  new_index: Some(n + prefix_size),
-                                                  data: new[n + prefix_size].clone(),
+                                                  new_index: Some(new_index),
+                                                  data: new[new_index].clone(),
                                               }));
                 n += 1;
             } else {
                 result.push(DiffResult::Removed(DiffElement {
-                                                    old_index: Some(o + prefix_size),
+                                                    old_index: Some(old_index),
                                                     new_index: None,
-                                                    data: old[o + prefix_size].clone(),
+                                                    data: old[old_index].clone(),
                                                 }));
                 o += 1;
             }
         }
         while n < new_len {
+            let new_index = n + prefix_size;
             result.push(DiffResult::Added(DiffElement {
                                               old_index: None,
-                                              new_index: Some(n + prefix_size),
-                                              data: new[n + prefix_size].clone(),
+                                              new_index: Some(new_index),
+                                              data: new[new_index].clone(),
                                           }));
             n += 1;
         }
         while o < old_len {
+            let old_index = o + prefix_size;
             result.push(DiffResult::Removed(DiffElement {
-                                                old_index: Some(o + prefix_size),
+                                                old_index: Some(old_index),
                                                 new_index: None,
-                                                data: old[o + prefix_size].clone(),
+                                                data: old[old_index].clone(),
                                             }));
             o += 1;
         }
@@ -136,12 +140,12 @@ pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
         // Restore common suffix
         let mut suffix_index = 0;
         while suffix_index < suffix_size {
-            let o = suffix_index + old_len + prefix_size;
-            let n = suffix_index + new_len + prefix_size;
+            let old_index = suffix_index + old_len + prefix_size;
+            let new_index = suffix_index + new_len + prefix_size;
             result.push(DiffResult::Common(DiffElement {
-                                               old_index: Some(o),
-                                               new_index: Some(n),
-                                               data: old[o].clone(),
+                                               old_index: Some(old_index),
+                                               new_index: Some(new_index),
+                                               data: old[old_index].clone(),
                                            }));
             suffix_index += 1;
         }
@@ -212,5 +216,54 @@ fn shoud_create_diff_result_with_removed() {
                                                new_index: Some(1),
                                                data: "c",
                                            })];
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn shoud_create_diff_result_without_new() {
+    let result = diff(&vec!["abc", "bcd", "c"], &vec![]);
+    let expected = vec![DiffResult::Removed(DiffElement {
+                                               old_index: Some(0),
+                                               new_index: None,
+                                               data: "abc",
+                                           }),
+                        DiffResult::Removed(DiffElement {
+                                                old_index: Some(1),
+                                                new_index: None,
+                                                data: "bcd",
+                                            }),
+                        DiffResult::Removed(DiffElement {
+                                               old_index: Some(2),
+                                               new_index: None,
+                                               data: "c",
+                                           })];
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn shoud_create_diff_result_without_old() {
+    let result = diff(&vec![], &vec!["abc", "bcd", "c"]);
+    let expected = vec![DiffResult::Added(DiffElement {
+                                               old_index: None,
+                                               new_index: Some(0),
+                                               data: "abc",
+                                           }),
+                        DiffResult::Added(DiffElement {
+                                                old_index: None,
+                                                new_index: Some(1),
+                                                data: "bcd",
+                                            }),
+                        DiffResult::Added(DiffElement {
+                                               old_index: None,
+                                               new_index: Some(2),
+                                               data: "c",
+                                           })];
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn shoud_create_empty_result_with_empty_input() {
+    let result = diff(&vec![0u8; 0], &vec![0u8; 0]);
+    let expected = vec![];
     assert_eq!(result, expected);
 }
