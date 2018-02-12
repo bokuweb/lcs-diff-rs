@@ -34,33 +34,13 @@ fn create_table<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<Vec<u32>> {
 }
 
 pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
-    let table = create_table(old, new);
-    let mut n = 0;
-    let mut o = 0;
     let mut result: Vec<DiffResult<T>> = Vec::new();
     let new_len = new.len();
     let old_len = old.len();
 
-    loop {
-        if n >= new_len || o >= old_len {
-            break;
-        }
-        if new[n] == old[o] {
-            result.push(DiffResult::Common(DiffElement {
-                                               old_index: Some(o),
-                                               new_index: Some(n),
-                                               data: new[n].clone(),
-                                           }));
-            n += 1;
-            o += 1;
-        } else if table[n + 1][o] >= table[n][o + 1] {
-            result.push(DiffResult::Added(DiffElement {
-                                              old_index: None,
-                                              new_index: Some(n),
-                                              data: new[n].clone(),
-                                          }));
-            n += 1;
-        } else {
+    if new_len == 0 {
+        let mut o = 0;
+        while o < old_len {
             result.push(DiffResult::Removed(DiffElement {
                                                 old_index: Some(o),
                                                 new_index: None,
@@ -68,22 +48,103 @@ pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
                                             }));
             o += 1;
         }
-    }
-    while n < new_len {
-        result.push(DiffResult::Added(DiffElement {
-                                          old_index: None,
-                                          new_index: Some(n),
-                                          data: new[n].clone(),
-                                      }));
-        n += 1;
-    }
-    while o < old_len {
-        result.push(DiffResult::Removed(DiffElement {
-                                            old_index: Some(o),
-                                            new_index: None,
-                                            data: old[o].clone(),
-                                        }));
-        o += 1;
+        return result;
+    } else if old_len == 0 {
+        let mut n = 0;
+        while n < new_len {
+            result.push(DiffResult::Added(DiffElement {
+                                              old_index: None,
+                                              new_index: Some(n),
+                                              data: new[n].clone(),
+                                          }));
+            n += 1;
+        }
+        return result;
+    } else {
+        let mut o = 0;
+        let mut n = 0;
+        let common_prefix = old.iter().zip(new).take_while(|p| p.0 == p.1);
+        let prefix_size = common_prefix.count();
+        let common_suffix = old.iter()
+            .rev()
+            .zip(new.iter().rev())
+            .take(cmp::min(old_len, new_len) - prefix_size)
+            .take_while(|p| p.0 == p.1);
+        let suffix_size = common_suffix.count();
+        let table = create_table(&old[prefix_size..(old_len - suffix_size)],
+                                 &new[prefix_size..(new_len - suffix_size)]);
+        let new_len = new_len - prefix_size - suffix_size;
+        let old_len = old_len - prefix_size - suffix_size;
+
+        // Restore common prefix
+        let mut prefix_index = 0;
+        while prefix_index < prefix_size {
+            result.push(DiffResult::Common(DiffElement {
+                                               old_index: Some(prefix_index),
+                                               new_index: Some(prefix_index),
+                                               data: old[prefix_index].clone(),
+                                           }));
+            prefix_index += 1;
+        }
+
+
+        loop {
+            if n >= new_len || o >= old_len {
+                break;
+            }
+            if new[n + prefix_size] == old[o + prefix_size] {
+                result.push(DiffResult::Common(DiffElement {
+                                                   old_index: Some(o + prefix_size),
+                                                   new_index: Some(n + prefix_size),
+                                                   data: new[n + prefix_size].clone(),
+                                               }));
+                n += 1;
+                o += 1;
+            } else if table[n + 1][o] >= table[n][o + 1] {
+                result.push(DiffResult::Added(DiffElement {
+                                                  old_index: None,
+                                                  new_index: Some(n + prefix_size),
+                                                  data: new[n + prefix_size].clone(),
+                                              }));
+                n += 1;
+            } else {
+                result.push(DiffResult::Removed(DiffElement {
+                                                    old_index: Some(o + prefix_size),
+                                                    new_index: None,
+                                                    data: old[o + prefix_size].clone(),
+                                                }));
+                o += 1;
+            }
+        }
+        while n < new_len {
+            result.push(DiffResult::Added(DiffElement {
+                                              old_index: None,
+                                              new_index: Some(n + prefix_size),
+                                              data: new[n + prefix_size].clone(),
+                                          }));
+            n += 1;
+        }
+        while o < old_len {
+            result.push(DiffResult::Removed(DiffElement {
+                                                old_index: Some(o + prefix_size),
+                                                new_index: None,
+                                                data: old[o + prefix_size].clone(),
+                                            }));
+            o += 1;
+        }
+
+        // Restore common suffix
+        let mut suffix_index = 0;
+        while suffix_index < suffix_size {
+            let o = suffix_index + old_len + prefix_size;
+            let n = suffix_index + new_len + prefix_size;
+            result.push(DiffResult::Common(DiffElement {
+                                               old_index: Some(o),
+                                               new_index: Some(n),
+                                               data: old[o].clone(),
+                                           }));
+            suffix_index += 1;
+        }
     }
     result
 }
