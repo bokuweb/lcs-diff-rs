@@ -9,3 +9,6 @@ readme = "README.md"
 description = "Compute differences between two slices using LCS algorithm."
 
 [dependencies]
+
+[dev-dependencies]
+speculate = "0.0.25"

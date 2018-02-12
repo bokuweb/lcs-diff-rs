@@ -1,30 +1,14 @@
 [[package]]
-name = "ansi_term"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "difference"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "lcs-diff"
+name = "lcs_diff"
 version = "0.1.0"
 dependencies = [
- "pretty_assertions 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "speculate 0.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "pretty_assertions"
-version = "0.5.0"
+name = "speculate"
+version = "0.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "difference 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [metadata]
-"checksum ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6b3568b48b7cefa6b8ce125f9bb4989e52fbcc29ebea88df04cc7c5f12f70455"
-"checksum difference 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "524cbf6897b527295dff137cec09ecf3a05f4fddffd7dfcd1585403449e74198"
-"checksum pretty_assertions 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "693786a0719bce004cf22e8d1923f678ba47b1e01589a973146cb10fe1be677e"
+"checksum speculate 0.0.25 (registry+https://github.com/rust-lang/crates.io-index)" = "3d8e3b4a7e9a3915e7f6e0f90e2f8e2a6bb9ccaaeb5b7d5062a39c3651250604"
