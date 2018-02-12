@@ -42,6 +42,9 @@ pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
     let old_len = old.len();
 
     loop {
+        if n >= new_len || o >= old_len {
+            break;
+        }
         if new[n] == old[o] {
             result.push(DiffResult::Common(DiffElement {
                                                old_index: Some(o),
@@ -52,37 +55,34 @@ pub fn diff<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<DiffResult<T>> {
             o += 1;
         } else if table[n + 1][o] >= table[n][o + 1] {
             result.push(DiffResult::Added(DiffElement {
-                                            old_index: None,
-                                            new_index: Some(n),
-                                            data: new[n].clone(),
-                                        }));
+                                              old_index: None,
+                                              new_index: Some(n),
+                                              data: new[n].clone(),
+                                          }));
             n += 1;
         } else {
             result.push(DiffResult::Removed(DiffElement {
-                                            old_index: Some(o),
-                                            new_index: None,
-                                            data: old[o].clone(),
-                                        }));
+                                                old_index: Some(o),
+                                                new_index: None,
+                                                data: old[o].clone(),
+                                            }));
             o += 1;
-        }
-        if n >= new_len || o >= old_len {
-            break;
         }
     }
     while n < new_len {
         result.push(DiffResult::Added(DiffElement {
-                                        old_index: None,
-                                        new_index: Some(n),
-                                        data: new[n].clone(),
-                                    }));
+                                          old_index: None,
+                                          new_index: Some(n),
+                                          data: new[n].clone(),
+                                      }));
         n += 1;
     }
     while o < old_len {
         result.push(DiffResult::Removed(DiffElement {
-                                        old_index: Some(o),
-                                        new_index: None,
-                                        data: old[o].clone(),
-                                    }));
+                                            old_index: Some(o),
+                                            new_index: None,
+                                            data: old[o].clone(),
+                                        }));
         o += 1;
     }
     result
@@ -119,10 +119,10 @@ fn shoud_create_diff_result_with_added() {
                                                data: "abc",
                                            }),
                         DiffResult::Added(DiffElement {
-                                            old_index: None,
-                                            new_index: Some(1),
-                                            data: "bcd",
-                                        }),
+                                              old_index: None,
+                                              new_index: Some(1),
+                                              data: "bcd",
+                                          }),
                         DiffResult::Common(DiffElement {
                                                old_index: Some(1),
                                                new_index: Some(2),
@@ -142,10 +142,10 @@ fn shoud_create_diff_result_with_removed() {
                                                data: "abc",
                                            }),
                         DiffResult::Removed(DiffElement {
-                                            old_index: Some(1),
-                                            new_index: None,
-                                            data: "bcd",
-                                        }),
+                                                old_index: Some(1),
+                                                new_index: None,
+                                                data: "bcd",
+                                            }),
                         DiffResult::Common(DiffElement {
                                                old_index: Some(2),
                                                new_index: Some(1),
