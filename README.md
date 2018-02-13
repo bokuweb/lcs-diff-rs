@@ -1,8 +1,9 @@
 # lcs-diff-rs
 Compute differences between two slices using LCS algorithm.
 
+[![](http://meritbadge.herokuapp.com/lcs-diff)](https://crates.io/crates/lcs-diff)
 [![CircleCI](https://circleci.com/gh/bokuweb/lcs-diff-rs.svg?style=svg)](https://circleci.com/gh/bokuweb/lcs-diff-rs)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/1t0imuj9ie52i2q8/branch/master?svg=true)](https://ci.appveyor.com/project/bokuweb/lcs-diff-rs/branch/master)
 ## Example
 
 ``` rust
