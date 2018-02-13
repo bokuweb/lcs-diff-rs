@@ -9,9 +9,9 @@ pub enum DiffResult<T: PartialEq + Clone> {
 
 #[derive(Debug, PartialEq)]
 pub struct DiffElement<T: PartialEq + Clone> {
-    old_index: Option<usize>,
-    new_index: Option<usize>,
-    data: T,
+    pub old_index: Option<usize>,
+    pub new_index: Option<usize>,
+    pub data: T,
 }
 
 fn create_table<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<Vec<u32>> {
