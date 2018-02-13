@@ -1,6 +1,6 @@
 [package]
-name = "lcs_diff"
-version = "0.1.0"
+name = "lcs-diff"
+version = "0.1.1"
 authors = ["bokuweb <bokuweb12@gmail.com>"]
 repository = "https://github.com/bokuweb/lcs-diff-rs"
 keywords = ["diff", "lcs"]
