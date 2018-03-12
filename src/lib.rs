@@ -21,7 +21,7 @@ fn create_table<T: PartialEq + Clone>(old: &[T], new: &[T]) -> Vec<Vec<u32>> {
     for i in 0..new_len {
         let i = new_len - i - 1;
         table[i][old_len] = 0;
-        for j in 0..old_len { {
+        for j in 0..old_len {
             let j = old_len - j - 1;
             table[i][j] = if new[i] == old[j] {
                 table[i + 1][j + 1] + 1
